@@ -1,24 +1,112 @@
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-
-node_modules
-dist
-dist-ssr
-*.local
-
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
+# -------------------------
+# macOS
+# -------------------------
 .DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+.AppleDouble
+.LSOverride
+
+# -------------------------
+# Python
+# -------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environments
+venv/
+.venv/
+ENV/
+env/
+env.bak/
+venv.bak/
+
+# pipenv
+Pipfile.lock
+
+# Poetry
+poetry.lock
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Logs
+*.log
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+.pytest_cache/
+coverage.xml
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
+
+# -------------------------
+# Environment variables / secrets
+# -------------------------
+.env
+.env.*
+*.env
+
+# -------------------------
+# VSCode
+# -------------------------
+.vscode/
+.history/
+
+# -------------------------
+# IDE / Editor
+# -------------------------
+.idea/
+*.iml
+*.sublime-workspace
+*.sublime-project
+
+# -------------------------
+# OS generated
+# -------------------------
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# -------------------------
+# Backup
+# -------------------------
+*.bak
+*.tmp
+
+# -------------------------
+# Node modules (if exists)
+# -------------------------
+node_modules/
+
+# -------------------------
+# Project-specific (optional)
+# -------------------------
+# Ignore Python virtual env inside backend folder
+opex-backend/.venv/
+opex-backend/venv/
+opex-backend/env/
+
