@@ -1,14 +1,18 @@
 // src/pages/admin/ServiceTab.tsx
 import React, { useEffect, useState } from 'react';
-import { Table, Button, Modal, Form, Input, Select, Radio, message, Tag } from 'antd';
-import { PlusOutlined, ReloadOutlined } from '@ant-design/icons';
-import { getServices, createService } from '../../api/serviceApi';
+import { Table, Button, Modal, Form, Input, Select, Radio, message, Tag, Upload } from 'antd';
+import type { UploadFile, UploadProps } from 'antd';
+import { InboxOutlined, PlusOutlined, ReloadOutlined, UploadOutlined } from '@ant-design/icons';
+import { getServices, createService, uploadServicesBulk } from '../../api/serviceApi';
 import type { Service, ServiceCreate } from '../../types';
 
 const ServiceTab: React.FC = () => {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
+  const [fileList, setFileList] = useState<UploadFile<any>[]>([]);
+  const [uploading, setUploading] = useState(false);
   const [form] = Form.useForm();
 
   const fetchData = async () => {
@@ -37,6 +41,50 @@ const ServiceTab: React.FC = () => {
     }
   };
 
+  const handleBulkUpload = async () => {
+    if (fileList.length === 0) {
+      message.warning('업로드할 파일을 선택해주세요.');
+      return;
+    }
+
+    const targetFile = fileList[0];
+    if (!targetFile?.originFileObj) {
+      message.error('업로드할 파일을 다시 선택해주세요.');
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const res = await uploadServicesBulk(targetFile.originFileObj as File);
+      message.success(res.message || '일괄 업로드가 완료되었습니다.');
+      setIsBulkModalOpen(false);
+      setFileList([]);
+      fetchData();
+    } catch (error: any) {
+      message.error(error.response?.data?.detail || '일괄 업로드 실패');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const uploadProps: UploadProps = {
+    name: 'file',
+    multiple: false,
+    fileList,
+    maxCount: 1,
+    accept: '.xls,.xlsx,.csv',
+    onRemove: () => setFileList([]),
+    beforeUpload: (file) => {
+      const isExcel = file.name.endsWith('.xlsx') || file.name.endsWith('.xls') || file.name.endsWith('.csv');
+      if (!isExcel) {
+        message.error('엑셀 또는 CSV 파일만 업로드할 수 있습니다.');
+        return Upload.LIST_IGNORE;
+      }
+      setFileList([file]);
+      return false;
+    },
+  };
+
   const columns = [
     { title: 'ID', dataIndex: 'svc_id', width: 100 },
     { title: '서비스명', dataIndex: 'svc_name', width: 200, fontWeight: 'bold' },
@@ -54,6 +102,9 @@ const ServiceTab: React.FC = () => {
       <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between' }}>
         <h3>📱 서비스(App) 목록</h3>
         <div>
+          <Button icon={<UploadOutlined />} onClick={() => setIsBulkModalOpen(true)} style={{ marginRight: 8 }}>
+            일괄 업로드
+          </Button>
           <Button icon={<ReloadOutlined />} onClick={fetchData} style={{ marginRight: 8 }}>새로고침</Button>
           <Button type="primary" icon={<PlusOutlined />} onClick={() => setIsModalOpen(true)}>신규 등록</Button>
         </div>
@@ -83,6 +134,21 @@ const ServiceTab: React.FC = () => {
             </Radio.Group>
           </Form.Item>
         </Form>
+      </Modal>
+
+      <Modal
+        title="서비스 일괄 업로드"
+        open={isBulkModalOpen}
+        onCancel={() => setIsBulkModalOpen(false)}
+        onOk={handleBulkUpload}
+        confirmLoading={uploading}
+      >
+        <p style={{ marginBottom: 12, color: '#888' }}>엑셀(xls/xlsx) 또는 CSV 파일을 업로드해 서비스를 일괄 등록합니다.</p>
+        <Upload.Dragger {...uploadProps} style={{ padding: '16px 0' }}>
+          <p className="ant-upload-drag-icon"><InboxOutlined /></p>
+          <p className="ant-upload-text">파일을 드래그하거나 클릭하여 선택하세요</p>
+          <p className="ant-upload-hint">필수 컬럼: svc_name(서비스명), is_resident(상주여부)</p>
+        </Upload.Dragger>
       </Modal>
     </div>
   );

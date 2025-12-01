@@ -1,5 +1,5 @@
 // src/api/vendorApi.ts
-import client from './client';
+import client, { fileClient } from './client';
 // 'type' 키워드를 꼭 붙여야 합니다!
 import type { Vendor, VendorCreate } from '../types';
 
@@ -12,5 +12,12 @@ export const getVendors = async () => {
 // 2. 신규 등록
 export const createVendor = async (data: VendorCreate) => {
   const response = await client.post<Vendor>('/vendors/', data);
+  return response.data;
+};
+
+export const uploadVendorsBulk = async (file: File) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  const response = await fileClient.post('/vendors/bulk-upload', formData);
   return response.data;
 };
