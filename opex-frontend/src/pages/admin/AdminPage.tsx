@@ -1,9 +1,10 @@
 // src/pages/admin/AdminPage.tsx
 import React from 'react';
 import { Tabs } from 'antd';
-import VendorTab from './VendorTab';
+import VendorMasterTab from './VendorMasterTab'; // <-- 파일명 수정 (MasterTab)
 import ServiceTab from './ServiceTab';
 import ClosingTab from './ClosingTab';
+import AccountTab from './AccountTab'; 
 
 const AdminPage: React.FC = () => {
   // 탭 목록 정의
@@ -11,7 +12,7 @@ const AdminPage: React.FC = () => {
     {
       key: '1',
       label: '계약업체 관리',
-      children: <VendorTab />, 
+      children: <VendorMasterTab />, 
     },
     {
       key: '2',
@@ -22,7 +23,7 @@ const AdminPage: React.FC = () => {
     {
       key: '4',
       label: '계정/예산코드',
-      children: <div>🚧 계정 관리 화면 준비중...</div>,
+      children: <AccountTab />, 
     },
   ];
 

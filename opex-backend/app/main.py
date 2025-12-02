@@ -3,10 +3,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.database import engine, Base
-from app.api.v1 import vendors, services, projects, execution, sap, report, utils
+from app.api.v1 import vendors, services, projects, execution, sap, report, utils, accounts
 from app.api.v1 import sap as sap_api
 from app.api.v1 import closing as closing_api # <--- API 라우터를 closing_api로 임포트!
-from app.models import vendor, service, project, sap, transfer   # (테이블 생성용)
+from app.models import vendor, service, project, sap, transfer, account   # (테이블 생성용)
 from logging.config import dictConfig # logging용
 from app.core.logging_setup import setup_logging # logging용
 from fastapi.exceptions import RequestValidationError 
@@ -45,30 +45,41 @@ app.add_middleware(
 )
 # ▲▲▲ (여기까지) ▲▲▲
 
+# app/main.py (validation_exception_handler 함수 내부 수정)
+
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    """Pydantic 유효성 검사 오류 발생 시 상세 내용을 터미널에 print로 기록합니다."""
     
+    # 1. Pydantic 에러 상세 정보 가져오기
     error_details = exc.errors()
-    
-    # ▼▼▼ [핵심 수정] logger 대신 print()로 강제 출력 ▼▼▼
+
+    # 2. 로깅 (기존 코드 유지)
     print("\n=============================================")
     print("🚨 FATAL VALIDATION ERROR (422) TRACE:")
-    print("=============================================")
-
-    for error in error_details:
-        field_path = ' -> '.join(map(str, error['loc']))
-        print(f"  [FIELD REQUIRED] Path: {field_path}")
-        print(f"  Message: {error['msg']}")
-        print(f"  Input: {error['input']}")
     
+    # 3. JSON 직렬화 가능하도록 에러 객체 정리 (핵심 수정)
+    # NOTE: Pydantic errors() 리스트를 순회하며 JSON 호환 형태로 만듭니다.
+    json_compatible_errors = []
+    for error in error_details:
+        print(f"  [FIELD REQUIRED/TYPE ERROR] Path: {' -> '.join(map(str, error['loc']))}")
+        print(f"  Message: {error['msg']}")
+        print(f"  Input received: {error['input']}")
+        
+        # JSON 직렬화 가능하도록 정리 (ValueError를 제거)
+        json_compatible_errors.append({
+            "type": error['type'],
+            "loc": error['loc'],
+            "msg": error['msg'],
+            # 'input' 필드는 복잡하므로 여기서는 제외하거나 문자열로 처리하는 것이 안전함.
+            # 하지만, error['input']에는 문제 필드도 들어있으므로, JSON 직렬화가 가능한 부분만 포함시킵니다.
+        })
+        
     print("---------------------------------------------")
-    # ▲▲▲ ▲▲▲ ▲▲▲ ▲▲▲
 
-    # 422 응답 반환 로직 (이전과 동일)
+    # 4. JSONResponse를 정리된 데이터로 반환
     return JSONResponse(
         status_code=422,
-        content={"detail": error_details},
+        content={"detail": json_compatible_errors}, # 직렬화 가능 객체 사용
     )
 
 
@@ -87,3 +98,4 @@ app.include_router(sap_api.router, prefix="/api/v1/sap", tags=["SAP"])
 app.include_router(report.router, prefix="/api/v1/report", tags=["Report"])
 app.include_router(utils.router, prefix="/api/v1/utils", tags=["Utilities"])
 app.include_router(closing_api.router, prefix="/api/v1/closing", tags=["Closing"]) # <--- closing 라우터 등록 
+app.include_router(accounts.router, prefix="/api/v1/accounts", tags=["Accounts & Codes"])

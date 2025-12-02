@@ -18,6 +18,8 @@ const { Dragger } = Upload;
 const { Option } = Select;   
 
 const ProjectBulkMasterPage: React.FC = () => {
+
+    
     // === 1. 상태 관리 ===
     const [fileList, setFileList] = useState<any[]>([]);
     const [uploading, setUploading] = useState(false);
@@ -93,6 +95,22 @@ const ProjectBulkMasterPage: React.FC = () => {
     }, []); 
 
 
+
+    // [신규 추가] 파일 목록 변경 핸들러
+    const handleFileChange = (info: any) => {
+    let newFileList = [...info.fileList];
+    
+    // 가장 최근 파일 1개만 유지
+    newFileList = newFileList.slice(-1);
+
+    // 🚨 디버깅을 위해 콘솔 출력 추가 🚨
+    console.log("File List Updated:", newFileList);
+    console.log("File Object:", newFileList[0]?.originFileObj); 
+
+    setFileList(newFileList);
+    };
+
+
     // 3. 일괄 등록 실행 핸들러 (Bulk Master Upload)
     const handleBulkUpload = async () => {
         if (fileList.length === 0 || !selectedYear) {
@@ -102,11 +120,25 @@ const ProjectBulkMasterPage: React.FC = () => {
 
         setUploading(true);
         try {
+            const fileToUpload = fileList[0].originFileObj;
+
+           if (!(fileToUpload instanceof File)) { // TypeScript 환경이므로 런타임 검증 추가
+                message.error('업로드할 파일 객체를 찾을 수 없습니다.');
+                return;
+            }
+        
+            // [수정] FormData 객체를 생성하고 파일과 연도를 첨부합니다.
             const formData = new FormData();
-            formData.append('file', fileList[0]);
+            
+            // 1. 파일 객체 추가 (키: 'file')
+            // File 객체가 아닌 다른 값을 넣으면 422 에러 발생 가능
+            formData.append('file', fileToUpload); 
+            
+            // 2. 연도 문자열 추가 (키: 'year')
             formData.append('year', selectedYear.toString());
             
-            const res = await uploadBulkProjectMaster(formData); 
+            // 3. API 호출
+            const res = await uploadBulkProjectMaster(formData);
             
             setSuccessMessage(res.message);
             setIsSuccessModalOpen(true);
@@ -129,9 +161,10 @@ const ProjectBulkMasterPage: React.FC = () => {
                 message.error('엑셀 파일만 업로드할 수 있습니다!');
                 return Upload.LIST_IGNORE;
             }
-            setFileList([file]);
+            //setFileList([file]);
             return false;
         },
+        onChange: handleFileChange
     };
 
     return (

@@ -1,24 +1,30 @@
-# app/schemas/vendor.py
-from pydantic import BaseModel
-from typing import Optional
+from pydantic import BaseModel, Field
+from typing import Optional, List
 from datetime import datetime
 
-# 1. 공통 속성 (Base)
+# 1. VendorBase: Core attributes for creation/update
 class VendorBase(BaseModel):
-    vendor_name: str
-    biz_reg_no: str
-    sap_vendor_cd: Optional[str] = None
-    vendor_alias: Optional[str] = None
-    is_active: Optional[str] = 'Y'
-
-# 2. 생성 시 필요한 속성 (Create)
+    vendor_id: str = Field(..., max_length=20, description="계약 업체 고유 ID (사업자번호/법인번호)")
+    vendor_name: str = Field(..., max_length=100, description="계약 업체명")
+    biz_reg_no: Optional[str] = None # ORM에 전달하기 위한 필드
+    
+# 2. VendorCreate: Schema for creating a new vendor
 class VendorCreate(VendorBase):
-    pass # Base와 동일
+    pass
 
-# 3. 읽을 때 반환할 속성 (Response)
+# 3. Vendor: Schema for reading/response
 class Vendor(VendorBase):
-    vendor_id: str
+    is_active: bool
     created_at: datetime
+    updated_at: Optional[datetime] = None
 
     class Config:
-        from_attributes = True # ORM 객체를 Pydantic 모델로 변환 허용
+        from_attributes = True
+
+# 4. Bulk Upload Response Schema (for duplicate handling)
+class BulkUploadResult(BaseModel):
+    total_count: int
+    success_count: int
+    duplicate_count: int
+    message: str
+    duplicates: Optional[List[VendorCreate]] = None

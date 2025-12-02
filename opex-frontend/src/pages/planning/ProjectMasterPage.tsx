@@ -46,7 +46,7 @@ const ProjectMasterPage: React.FC = () => {
         setLoading(true);
         try {
             const [pData, vData, sData] = await Promise.all([
-                getProjects(),
+                getProjects('2025'),
                 getVendors(),
                 getServices()
             ]);

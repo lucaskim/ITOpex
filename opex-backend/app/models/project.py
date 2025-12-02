@@ -40,6 +40,8 @@ class ProjectMaster(Base):
     budget_l2 = Column(String(100), nullable=True)            # 예산 분류(대2)
     budget_s2 = Column(String(100), nullable=True)            # 예산 분류(소2)
     budget_nature_type = Column(String(50), nullable=True)    # 예산 성격
+    budget_nature = Column(String(50), nullable=True) # <-- 이 필드가 있는지 확인
+    svc_id = Column(String(50), nullable=True)        # <-- 이 필드가 있는지 확인
     report_class_type = Column(String(50), nullable=True)     # 예산보고 분류
     budget_it_type = Column(String(50), nullable=True)        # 예산 분류(IT) <--- NEW
     

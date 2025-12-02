@@ -12,8 +12,9 @@ export interface Vendor {
 }
 
 export interface VendorCreate {
+  vendor_id: string;      // 업체 고유 ID (폼에서 입력)
   vendor_name: string;
-  biz_reg_no: string;
+  biz_reg_no?: string;    // 사업자번호는 선택으로 변경
   sap_vendor_cd?: string;
   vendor_alias?: string;
   is_active?: string;
@@ -62,6 +63,29 @@ export interface ProjectCreate {
   monthly_amounts: number[]; // [1000, 2000, ...]
 }
 
+// [추가] 사업계획 수정 요청 시 사용되는 타입 (모든 필드는 Optional)
+export interface ProjectUpdate {
+  // [추가] 인덱스 시그니처를 추가하여 string 키로 접근을 허용합니다.
+  [key: string]: any;
+  proj_name?: string;
+  dept_code?: string;
+  fiscal_year?: string;
+  
+  // 마스터 데이터
+  prev_proj_id?: string | null;
+  vendor_id?: string | null;
+  svc_id?: string | null;
+  budget_nature?: string | null;
+  report_class?: string | null;
+  exec_appr_no?: string | null;
+  is_shared?: string;
+  shared_ratio?: number;
+  is_prepay?: string;
+
+  // 월별 계획 (수정 시 12개월 전체를 보냅니다.)
+  monthly_amounts?: (number | null)[]; 
+}
+
 export interface MonthlyStatus {
   proj_id: string;
   proj_name: string;
@@ -77,4 +101,13 @@ export interface ClosingStatus {
     yyyymm: string;
     status: 'OPEN' | 'CLOSED';
     closed_at?: string;
+}
+
+export interface BulkUploadResult<T> {
+    vendor_id: string;
+    total_count: number;
+    success_count: number;
+    duplicate_count: number;
+    message: string;
+    duplicates?: T[]; // 중복된 항목 리스트
 }
